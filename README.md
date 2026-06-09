@@ -32,3 +32,21 @@ flowchart LR
   C --> G
   D --> E
 ```
+
+### Run locally with Python
+
+1. Create a virtual environment:
+
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
+
+2. Run online store app:
+
+   ```bash
+   uvicorn src.app.main:app --reload --host 0.0.0.0 --port 8000
+   ```
+
+3. Visit `http://127.0.0.1:8000/docs`

@@ -14,6 +14,8 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    env:
+      KUBECONFIG: ${{ runner.temp }}/kubeconfig
 
     steps:
     - uses: actions/checkout@v4
@@ -67,6 +69,10 @@ jobs:
         make docker-build
         # Load local image into kind
         make kind-load
+
+      # Create a kind cluster from kind-config.yaml config
+    - name: Create Kind Cluster
+      run: make kind-create
 
       # Install Helm chart and verify pods are running
     - name: Deploy App to the cluster

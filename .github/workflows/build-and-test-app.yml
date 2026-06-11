@@ -110,11 +110,9 @@ jobs:
         kubectl port-forward svc/online-store 8000:80 >/tmp/port-forward.log 2>&1 &sleep 10
         curl --fail --retry 5 --retry-delay 3 http://localhost:8000/health
 
-      # Clean up Cluster and Helm release
-    - name: Tear down Kind cluster and Helm release
+      # Clean up Cluster
+    - name: Tear down Kind Cluster
       if: always()
-      env:
-        KUBECONFIG: ${{ runner.temp }}/kubeconfig
       run: |
-        # Clean up cluster and uninstall release even if earlier steps fail
-        make kind-clean || true
+        # Delete cluster
+        kind delete cluster --name online-store || true

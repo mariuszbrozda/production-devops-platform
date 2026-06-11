@@ -101,17 +101,3 @@ jobs:
       run: |
         kubectl port-forward svc/online-store 8000:80 >/tmp/port-forward.log 2>&1 &sleep 10
         curl --fail --retry 5 --retry-delay 3 http://localhost:8000/health
-
-    - name: Export logs
-      if: always()
-      run: |
-        if kind get clusters | grep -q "^kind$"; then
-          kind export logs ./kind-logs --name kind
-        fi
-
-      # Clean up Cluster
-    - name: Tear down Kind Cluster
-      if: always()
-      run: |
-        # Delete cluster
-        kind delete cluster --name kind || true

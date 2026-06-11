@@ -64,6 +64,10 @@ jobs:
     - name: Install Helm
       uses: azure/setup-helm@v1
 
+      # Create a kind cluster from kind-config.yaml config
+    - name: Create Kind Cluster
+      run: make kind-create
+
       # Build docker image and load it to Kind cluster
     - name: Build and load docker image to Kind Cluster
       run: |
@@ -71,10 +75,6 @@ jobs:
         make docker-build
         # Load local image into kind
         make kind-load
-
-      # Create a kind cluster from kind-config.yaml config
-    - name: Create Kind Cluster
-      run: make kind-create
 
       # Install Helm chart and verify pods are running
     - name: Deploy App to the cluster

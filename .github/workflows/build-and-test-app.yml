@@ -99,8 +99,6 @@ jobs:
       # env:
       #   KUBECONFIG: ${{ runner.temp }}/kubeconfig
       run: |
-        kind export kubeconfig --name kind
-        echo "KUBECONFIG=$HOME/.kube/config" >> $GITHUB_ENV
         # Deploy Helm chart to the kind cluster
         make kind-deploy
         kubectl get pod

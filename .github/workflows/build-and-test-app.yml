@@ -55,6 +55,7 @@ jobs:
       uses: engineerd/setup-kind@v0.6.2
       with:
         skipClusterCreation: true
+
     - name: Verify Kind installation
       run: |
         kind version
@@ -73,7 +74,7 @@ jobs:
     - name: Setup kubeconfig for Kind Cluster
       run: |
         mkdir -p ${{ runner.temp }}
-        kind export kubeconfig --name online-store
+        kind export kubeconfig --name kind
         echo "KUBECONFIG=$HOME/.kube/config" >> $GITHUB_ENV
 
         kubectl cluster-info
@@ -104,8 +105,8 @@ jobs:
     - name: Export logs
       if: always()
       run: |
-        if kind get clusters | grep -q "^online-store$"; then
-          kind export logs ./kind-logs --name online-store
+        if kind get clusters | grep -q "^kind$"; then
+          kind export logs ./kind-logs --name kind
         fi
 
       # Clean up Cluster
@@ -113,4 +114,4 @@ jobs:
       if: always()
       run: |
         # Delete cluster
-        kind delete cluster --name online-store || true
+        kind delete cluster --name kind || true

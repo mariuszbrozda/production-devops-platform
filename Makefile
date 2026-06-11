@@ -27,17 +27,17 @@ docker-build:
 	docker build -t online-store:local .
 
 kind-create:
-	kind create cluster --name online-store --config kind-config.yaml
+	kind create cluster --name kind --config kind-config.yaml
 
 kind-load:
-	kind load docker-image online-store:local --name online-store
+	kind load docker-image online-store:local --name kind
 
 kind-deploy:
 	helm upgrade --install online-store deploy/charts/online-store --set image.repository=online-store --set image.tag=local
 
 kind-clean:
 	helm uninstall online-store || true
-	kind delete cluster --name online-store || true
+	kind delete cluster --name kind || true
 
 clean:
 	rm -rf .venv __pycache__

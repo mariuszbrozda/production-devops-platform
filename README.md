@@ -11,26 +11,21 @@ Python FastAPI online store application deployed with Kubernetes using Infrastru
 - Helm chart for Kubernetes deployment
 - GitHub Actions for build and publish pipelines
 
-# Architecture Diagram
+# Current Architecture Diagram
 
 ```mermaid
 flowchart LR
   A[GitHub Repository] -->|Push code| B[GitHub Actions CI]
-  B -->|Build & push| C[AWS ECR]
-  C -->|Image available| D[Flux HelmRelease]
-  D -->|Deploy chart| E[AWS EKS Cluster]
+  B --> C[Install dependencies & run tests]
+  B --> D[Build Docker image]
+  D --> E[Load image into Kind cluster]
+  B --> F[Deploy Helm chart to cluster]
+  F --> E
+  E --> G[FastAPI app on Kubernetes cluster]
 
-  subgraph Cloud Infrastructure
+  subgraph Kind Kubernetes
     E
-    F[AWS VPC]
-    G[AWS ECR]
-    H[AWS IAM]
   end
-
-  E --> F
-  B --> H
-  C --> G
-  D --> E
 ```
 ## Local development
 
@@ -61,8 +56,8 @@ flowchart LR
 
 3. Visit `http://127.0.0.1:8000/docs`
 
-### Run locally with Docker + kind + Makefile
-
+### Run in Kind Cluster
+#### (Runs as part of build and test app CI workflow)
 ```bash
 make help
 ```

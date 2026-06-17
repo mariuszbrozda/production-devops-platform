@@ -4,8 +4,8 @@ output "repository_url" {
 }
 
 output "repository_name" {
-  value       = module.ecr.repository_name
-  description = "The name of the ECR repository"
+  value       = var.repository_name
+  description = "The name of the ECR repository (from module input)"
 }
 
 output "repository_arn" {

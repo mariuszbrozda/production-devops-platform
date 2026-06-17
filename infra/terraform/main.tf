@@ -11,7 +11,7 @@ module "networking" {
   enable_dns_hostnames = var.enable_dns_hostnames
   enable_dns_support   = var.enable_dns_support
 
-  tags = local.common_tags
+  tags = var.common_tags
 }
 
 # ECR module
@@ -23,16 +23,5 @@ module "ecr" {
   encryption_type      = var.ecr_encryption_type
   scan_on_push         = var.ecr_scan_on_push
 
-  tags = local.common_tags
-}
-
-# Local values for common tags
-locals {
-  common_tags = merge(
-    var.common_tags,
-    {
-      Environment = var.environment
-      ManagedBy   = "Terraform"
-    }
-  )
+  tags = var.common_tags
 }

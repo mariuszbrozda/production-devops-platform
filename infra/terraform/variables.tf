@@ -44,13 +44,13 @@ variable "private_subnets" {
 variable "enable_nat_gateway" {
   type        = bool
   description = "Enable NAT gateway for private subnets"
-  default     = true
+  default     = false
 }
 
 variable "single_nat_gateway" {
   type        = bool
   description = "Use a single NAT gateway for all private subnets"
-  default     = true
+  default     = false
 }
 
 variable "enable_dns_hostnames" {

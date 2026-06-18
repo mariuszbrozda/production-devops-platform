@@ -131,7 +131,6 @@ jobs:
       run: terraform fmt -check -recursive
 
     - name: Terraform validate
-      working-directory: infra/terraform
       run: make tf-validate
 
     - name: Terraform plan quietly

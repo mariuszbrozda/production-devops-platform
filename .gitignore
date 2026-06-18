@@ -220,7 +220,7 @@ __marimo__/
 # Terraform
 *.tfstate
 *.tfstate.*
-*.tfvars
+# *.tfvars
 *.tfvars.json
 *.tfplan
 *.tfplan.json

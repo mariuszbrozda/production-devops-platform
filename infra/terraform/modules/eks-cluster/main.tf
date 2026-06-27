@@ -17,7 +17,7 @@ module "eks" {
 
   enable_irsa = var.enable_irsa
 
-  addons = {
+  cluster_addons = {
     coredns = {}
     eks-pod-identity-agent = {
       before_compute = true

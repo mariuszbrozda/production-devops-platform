@@ -13,23 +13,9 @@ module "eks" {
   create_kms_key                = var.create_kms_key
   enable_kms_key_rotation       = var.enable_kms_key_rotation
   cluster_encryption_config     = {}
-  bootstrap_self_managed_addons = false
+  bootstrap_self_managed_addons = true
 
   enable_irsa = var.enable_irsa
-
-  cluster_addons = {
-    vpc-cni = {
-      addon_version = "v1.19.4-eksbuild.1"
-    }
-
-    coredns = {
-      addon_version = "v1.11.4-eksbuild.2"
-    }
-
-    kube-proxy = {
-      addon_version = "v1.35.0-eksbuild.1"
-    }
-  }
 
   eks_managed_node_group_defaults = {
     #  ami_type       = "AL2_x86_64"

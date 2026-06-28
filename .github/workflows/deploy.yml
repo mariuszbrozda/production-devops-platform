@@ -111,8 +111,8 @@ jobs:
       - name: Build & Tag Docker image
         run: |
           IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}
-          docker build -t ${IMAGE_URI}:latest .
-          docker tag ${IMAGE_URI}:latest
+          docker build -t online-store .
+          docker tag online-store:latest ${IMAGE_URI}:latest
 
       - name: Push Docker image to ECR
         run: |
@@ -126,6 +126,7 @@ jobs:
       - name: Deploy App Helm Chart to EKS cluster
         run: |
           helm upgrade --install online-store deploy/charts/online-store --set image.repository=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }} --set image.tag=latest
+          sleep 5
 
       - name: Test Application via Load Ballancer
         run: |

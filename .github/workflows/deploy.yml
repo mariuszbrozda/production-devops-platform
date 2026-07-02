@@ -8,9 +8,12 @@ name: Build And Deploy
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: ["Build and Test"]
-    types: [completed]
+  # workflow_run:
+  #   workflows: ["Build and Test"]
+  #   types: [completed]
+
+permissions:
+  contents: write
 
 jobs:
   build-and-deploy:
@@ -21,6 +24,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       ECR_REPOSITORY_NAME: ${{ secrets.ECR_REPOSITORY }}
       EKS_CLUSTER_NAME: ${{ secrets.EKS_CLUSTER_NAME }}
+      ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
 
     steps:
       - name: Checkout repository
@@ -103,6 +107,21 @@ jobs:
           aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
           kubectl get nodes
 
+      # Setup and validate FluxCD
+      - name: Install Flux CLI
+        run: |
+          curl -s https://fluxcd.io/install.sh | sudo bash
+
+      - name: Validate Flux
+        run: |
+          echo "Validating Flux installation and configuration"
+          flux --version
+          flux check --pre
+          flux check
+          sleep 20
+          flux get sources git
+          kubectl api-resources | grep HelmRelease
+
       # Build and push Docker image to ECR
       - name: Login to Amazon ECR
         id: login-ecr
@@ -123,26 +142,37 @@ jobs:
         run: |
           echo "IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest"
 
-      - name: Deploy App Helm Chart to EKS cluster
+      - name: Reconcile Flux GitRepository
         run: |
-          helm upgrade --install online-store deploy/charts/online-store --set image.repository=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }} --set image.tag=latest
-          sleep 120
+          flux reconcile source git online-store-repo --namespace flux-system
+          flux reconcile helm release online-store --namespace default
+          echo "Waiting for Helm release to be deployed"
+          sleep 90
 
-      - name: Test Application via Load Ballancer
+      - name: Verify Helm release, deployments, and pods
         run: |
+          echo "Verifying helm release, deployments, and pods"
+          helm list
+          kubectl get deployments
+          kubectl get pod
+
+
+      - name: Test Application via Load Balancer
+        run: |
+          echo "Retrieving Load Balancer External Ip(host)"
           EXTERNAL_IP=$(kubectl get svc online-store -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+          echo "Accessing External Ip(host) by curl"
           curl $(echo "http://$EXTERNAL_IP")
-          sleep 5
+          sleep 60
       - name: Clean up
         run: |
           echo "Cleaning up Helm release"
           helm uninstall online-store
           echo "Deleting ECR image"
           aws ecr batch-delete-image --repository-name ${{ secrets.ECR_REPOSITORY }} --image-ids imageTag=latest
-          echo "deleting Infra"
-          terraform destroy -auto-approve
       - name: Destroy Terraform resources
         working-directory: infra/terraform
         if: always()
         run: |
+          echo "deleting Infra"
           terraform destroy -auto-approve

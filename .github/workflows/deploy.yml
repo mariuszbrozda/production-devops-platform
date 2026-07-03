@@ -118,20 +118,13 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build & Tag Docker image
+      - name: Build Tag snd Push Docker image to ECR
         run: |
           IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}
           docker build -t online-store .
           docker tag online-store:latest ${IMAGE_URI}:latest
-
-      - name: Push Docker image to ECR
-        run: |
-          IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}
           docker push ${IMAGE_URI}:latest
-
-      - name: Output pushed image URI
-        run: |
-          echo "IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest"
+          echo "Image uri: ${IMAGE_URI}:latest"
 
       # Setup and validate FluxCD
       - name: Install Flux CLI
@@ -144,25 +137,19 @@ jobs:
           flux --version
           flux check --pre
 
-      - name: Bootstrap Git Repository for Flux
+      - name: Bootstrap Flux
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
         run: |
           flux bootstrap github \
-          --owner=mariuszbrozda \
-          --repository=devops-fastapi-k8-aws-helm \
-          --branch=main \
-          --path=deploy/flux/flux-system \
-          --personal
+            --owner=${{ secrets.GIT_USER }} \
+            --repository=devops-fastapi-k8-aws-helm \
+            --branch=main \
+            --path=deploy/clusters/flux-system \
+            --personal
 
-      - name: Reconcile Flux GitRepository
-        run: |
-          echo "Reconciling Flux GitRepository and HelmRelease"
-          sleep 30
-          flux reconcile source git online-store-repo --namespace flux-system
-          flux reconcile kustomization flux-system
-          flux get kustomizations -A
-          flux reconcile helmrelease online-store --namespace default
-          echo "Waiting for Helm release to be deployed"
-          sleep 120
+      - name: Flux Check
+        run: flux check
 
       - name: Verify Helm release, deployments, and pods
         run: |

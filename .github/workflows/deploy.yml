@@ -117,10 +117,6 @@ jobs:
           echo "Validating Flux installation and configuration"
           flux --version
           flux check --pre
-          flux check
-          sleep 20
-          flux get sources git
-          kubectl api-resources | grep HelmRelease
 
       # Build and push Docker image to ECR
       - name: Login to Amazon ECR
@@ -142,15 +138,17 @@ jobs:
         run: |
           echo "IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest"
 
-      - name: Reconcile Flux GitRepository
-        run: |
-          flux reconcile source git online-store-repo --namespace flux-system
-          flux reconcile helm release online-store --namespace default
-          echo "Waiting for Helm release to be deployed"
-          sleep 90
+      # - name: Reconcile Flux GitRepository
+      #   run: |
+      #     flux reconcile source git online-store-repo --namespace flux-system
+      #     flux reconcile helm release online-store --namespace default
+      #     echo "Waiting for Helm release to be deployed"
+      #     sleep 90
 
       - name: Verify Helm release, deployments, and pods
         run: |
+          echo "Waiting for Helm release to be deployed"
+          sleep 90
           echo "Verifying helm release, deployments, and pods"
           helm list
           kubectl get deployments

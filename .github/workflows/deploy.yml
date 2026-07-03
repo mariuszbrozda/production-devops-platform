@@ -24,7 +24,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       ECR_REPOSITORY_NAME: ${{ secrets.ECR_REPOSITORY }}
       EKS_CLUSTER_NAME: ${{ secrets.EKS_CLUSTER_NAME }}
-      ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+      ECR_REPOSITORY: ${{ secrets.ECR_REPO_URL }}
 
     steps:
       - name: Checkout repository
@@ -111,7 +111,7 @@ jobs:
         run: |
           kubectl create secret generic ecr-config \
             -n default \
-            --from-literal=repository=${{ vars.ECR_REPOSITORY }}
+            --from-literal=repository=${{ secrets.ECR_REPO_URL }}
 
       # Build and push Docker image to ECR
       - name: Login to Amazon ECR

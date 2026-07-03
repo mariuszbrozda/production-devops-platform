@@ -113,17 +113,6 @@ jobs:
             -n default \
             --from-literal=repository=${{ vars.ECR_REPOSITORY }}
 
-      # Setup and validate FluxCD
-      - name: Install Flux CLI
-        run: |
-          curl -s https://fluxcd.io/install.sh | sudo bash
-
-      - name: Validate Flux
-        run: |
-          echo "Validating Flux installation and configuration"
-          flux --version
-          flux check --pre
-
       # Build and push Docker image to ECR
       - name: Login to Amazon ECR
         id: login-ecr
@@ -144,9 +133,30 @@ jobs:
         run: |
           echo "IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest"
 
+      # Setup and validate FluxCD
+      - name: Install Flux CLI
+        run: |
+          curl -s https://fluxcd.io/install.sh | sudo bash
+
+      - name: Validate Flux
+        run: |
+          echo "Validating Flux installation and configuration"
+          flux --version
+          flux check --pre
+
+      - name: Bootstrap Git Repository for Flux
+        run: |
+          flux bootstrap github \
+          --owner=mariuszbrozda \
+          --repository=devops-fastapi-k8-aws-helm \
+          --branch=main \
+          --path=deploy/flux/flux-system \
+          --personal
+
       - name: Reconcile Flux GitRepository
         run: |
           echo "Reconciling Flux GitRepository and HelmRelease"
+          sleep 30
           flux reconcile source git online-store-repo --namespace flux-system
           flux reconcile kustomization flux-system
           flux get kustomizations -A

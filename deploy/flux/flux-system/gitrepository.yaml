@@ -6,5 +6,6 @@ metadata:
 spec:
   interval: 1m
   url: https://github.com/mariuszbrozda/devops-fastapi-k8-aws-helm.git
-  branch: main
+  ref:
+    branch: main
   timeout: 20s

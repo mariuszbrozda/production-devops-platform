@@ -15,8 +15,12 @@ spec:
       interval: 1m
   values:
     image:
-      repository: ${ECR_REPOSITORY}
       tag: latest
     service:
       type: ClusterIP
       port: 80
+  valuesFrom:
+    - kind: Secret
+      name: ecr-config
+      valuesKey: repository
+      targetPath: image.repository

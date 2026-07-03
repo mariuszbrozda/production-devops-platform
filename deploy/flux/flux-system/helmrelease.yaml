@@ -16,9 +16,6 @@ spec:
   values:
     image:
       tag: latest
-  service:
-    type: LoadBalancer
-    port: 80
   valuesFrom:
     - kind: Secret
       name: ecr-config

@@ -107,6 +107,12 @@ jobs:
           aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
           kubectl get nodes
 
+      - name: Create ECR repo secret in cluster
+        run: |
+          kubectl create secret generic ecr-config \
+            -n default \
+            --from-literal=repository=${{ vars.ECR_REPOSITORY }}
+
       # Setup and validate FluxCD
       - name: Install Flux CLI
         run: |
@@ -138,12 +144,15 @@ jobs:
         run: |
           echo "IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest"
 
-      # - name: Reconcile Flux GitRepository
-      #   run: |
-      #     flux reconcile source git online-store-repo --namespace flux-system
-      #     flux reconcile helm release online-store --namespace default
-      #     echo "Waiting for Helm release to be deployed"
-      #     sleep 90
+      - name: Reconcile Flux GitRepository
+        run: |
+          echo "Reconciling Flux GitRepository and HelmRelease"
+          flux reconcile source git online-store-repo --namespace flux-system
+          flux reconcile kustomization flux-system
+          flux get kustomizations -A
+          flux reconcile helmrelease online-store --namespace default
+          echo "Waiting for Helm release to be deployed"
+          sleep 120
 
       - name: Verify Helm release, deployments, and pods
         run: |
@@ -153,7 +162,6 @@ jobs:
           helm list
           kubectl get deployments
           kubectl get pod
-
 
       - name: Test Application via Load Balancer
         run: |

@@ -24,7 +24,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       ECR_REPOSITORY_NAME: ${{ secrets.ECR_REPOSITORY }}
       EKS_CLUSTER_NAME: ${{ secrets.EKS_CLUSTER_NAME }}
-      ECR_REPOSITORY: ${{ secrets.ECR_REPO_URL }}
+      ECR_REPOSITORY_URL: ${{ secrets.ECR_REPO_URL }}
 
     steps:
       - name: Checkout repository
@@ -108,7 +108,7 @@ jobs:
           kubectl get nodes
 
       - name: Create ECR repo secret in cluster
-        run: kubectl create secret generic ecr-config -n default --from-literal=repository=${{ secrets.ECR_REPO_URL }}
+        run: kubectl create secret generic ecr -n default --from-literal=repository=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY_NAME }}
 
       # Build and push Docker image to ECR
       - name: Login to Amazon ECR
@@ -117,7 +117,7 @@ jobs:
 
       - name: Build Tag snd Push Docker image to ECR
         run: |
-          IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}
+          IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY_NAME }}
           docker build -t online-store .
           docker tag online-store:latest ${IMAGE_URI}:latest
           docker push ${IMAGE_URI}:latest
@@ -169,7 +169,7 @@ jobs:
           echo "Cleaning up Helm release"
           helm uninstall online-store
           echo "Deleting ECR image"
-          aws ecr batch-delete-image --repository-name ${{ secrets.ECR_REPOSITORY }} --image-ids imageTag=latest
+          aws ecr batch-delete-image --repository-name ${{ secrets.ECR_REPOSITORY_NAME }} --image-ids imageTag=latest
       - name: Destroy Terraform resources
         working-directory: infra/terraform
         if: always()

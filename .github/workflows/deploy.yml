@@ -108,10 +108,7 @@ jobs:
           kubectl get nodes
 
       - name: Create ECR repo secret in cluster
-        run: |
-          kubectl create secret generic ecr-config \
-            -n default \
-            --from-literal=repository=${{ secrets.ECR_REPO_URL }}
+        run: kubectl create secret generic ecr-config -n default --from-literal=repository=${{ secrets.ECR_REPO_URL }}
 
       # Build and push Docker image to ECR
       - name: Login to Amazon ECR
@@ -154,7 +151,7 @@ jobs:
       - name: Verify Helm release, deployments, and pods
         run: |
           echo "Waiting for Helm release to be deployed"
-          sleep 90
+          sleep 120
           echo "Verifying helm release, deployments, and pods"
           helm list
           kubectl get deployments

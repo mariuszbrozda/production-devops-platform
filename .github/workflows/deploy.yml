@@ -107,7 +107,7 @@ jobs:
           kubectl get nodes
 
       - name: Create ECR repo secret in cluster
-        run: kubectl create secret generic ecr -n default --from-literal=repository=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY_NAME }}
+        run: kubectl create secret generic ecr-config -n default --from-literal=repository=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY_NAME }}
 
       # Build and push Docker image to ECR
       - name: Login to Amazon ECR
@@ -162,11 +162,9 @@ jobs:
           EXTERNAL_IP=$(kubectl get svc online-store -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
           echo "Accessing External Ip(host) by curl"
           curl $(echo "http://$EXTERNAL_IP")
-          sleep 60
+          sleep 30
       - name: Clean up
         run: |
-          echo "Cleaning up Helm release"
-          helm uninstall online-store
           echo "Deleting ECR image"
           aws ecr batch-delete-image --repository-name ${{ secrets.ECR_REPOSITORY_NAME }} --image-ids imageTag=latest
       - name: Destroy Terraform resources

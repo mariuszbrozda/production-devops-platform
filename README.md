@@ -1,6 +1,7 @@
 # Online Store FastAPI + Kubernetes
 
-Python FastAPI online store application deployed with Kubernetes using Infrastructure as Code and CI/CD automation.
+Python FastAPI online store application deployed with Kubernetes and Helm using Infrastructure as Code and CI/CD automation.
+This project reflects a typical DevOps deployment workflow where source code is tested and built into a Docker image, stored in Amazon ECR, and deployed to an Amazon EKS cluster using flux and helmrelease(watching ECR repo for new available app image), while AWS infrastructure is provisioned with Terraform. The repository is designed to demonstrate an end-to-end Infrastructure-as-Code and GitOps-style workflow.
 
 ## Stack
 
@@ -13,7 +14,7 @@ Python FastAPI online store application deployed with Kubernetes using Infrastru
 
 # High Level Architecture Diagram
 
-![Diagram](diagram.png)
+![Diagram](images/diagram.png)
 
 ## Local development
 
@@ -84,7 +85,8 @@ make help
 
 > To tear down the local cluster, run `make kind-clean`.
 
-## Cloud deployment
+## Cloud deployment AWS(manual steps)
+
 #### (Runs as part of 'deployment' CD workflow)
 
 ### Cloud prerequisites
@@ -93,6 +95,9 @@ make help
 - AWS CLI configured with `aws configure`
 - Terraform 1.5+
 - GitHub repository with repository secrets
+- Github PAT token
+- kubectl
+- Helm
 
 ### Configure GitHub Actions secrets
 
@@ -102,7 +107,7 @@ Add these secrets to the repository:
 - `AWS_SECRET_ACCESS_KEY`
 - `AWS_REGION`
 - `AWS_ACCOUNT_ID`
-- `ECR_REPOSITORY`
+- `ECR_REPOSITORY_NAME`
 - `EKS_CLUSTER_NAME`
 
 ### Deploy infrastructure and App
@@ -112,13 +117,14 @@ Add these secrets to the repository:
    ```bash
    cd infra/terraform
    terraform init
+   terraform plan
    terraform apply --auto-approve
    ```
 
 2. Configure kubectl to use the new cluster:
 
    ```bash
-   aws eks update-kubeconfig --name $(terraform output -raw cluster_name) --region $(terraform output -raw region)
+   aws eks update-kubeconfig --name <CLUSTER_NAME> --region <AWS_REGION>
    ```
 
 3. Verify Cluster creation:
@@ -135,19 +141,64 @@ Add these secrets to the repository:
    ```
 
 5. Build Tag and push image:
+
    ```bash
    docker build -t online-store .
 
-   docker tag online-store:latest <AWS_ACCOUNT_ID>.dkr.ecr.<AWS_REGION>.amazonaws.com:latest
+   docker tag online-store:latest <AWS_ACCOUNT_ID>.dkr.ecr.<AWS_REGION>.amazonaws.com/online-store:latest
 
    docker push <AWS_ACCOUNT_ID>.dkr.ecr.<AWS_REGION>.amazonaws.com/online-store:latest
    ```
 
-6. Install App Helm Chart:
+6. Install Flux:
+
    ```bash
-   helm upgrade --install online-store deploy/charts/online-store --set image.repository=<AWS_ACCOUNT_ID>.dkr.ecr.<AWS_REGION>.amazonaws.com/online-store --set image.tag=latest
+   curl -s https://fluxcd.io/install.sh | sudo bash
    ```
-7. Verify and test app:
+
+7. Create ecr-config secret used by helmrelease:
+
+   ```bash
+   kubectl create secret generic ecr-config \
+      -n default \
+      --from-literal=repository=<ECR_REPOSITORY_URL>
+   ```
+
+8. Bootstrap Flux Git repo:
+
+   How to create PAT token can be found here: [github docs](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token)
+
+   ```bash
+    export GITHUB_TOKEN: <GitHub PAT>
+
+    flux bootstrap github \
+      --owner=<owner-name> \
+      --repository=<repository-name> \
+      --branch=main \
+      --path=deploy/flux/flux-system \
+      --personal
+   ```
+   ```bash
+   Verify Flux
+      $ flux check
+   ```
+
+9. Reconcile:
+   ```bash
+    flux reconcile source git online-store-repo --namespace flux-system
+    flux reconcile kustomization flux-system --with-source
+   ```
+   NOTE: The bootstrap process already creates the initial GitRepository and Kustomization and starts reconciliation. You'd only use flux reconcile later if you wanted to force an immediate sync after making changes
+
+10. Validate the Flux resources:
+
+   ```bash
+   flux get sources git
+   flux get helmreleases
+   kubectl api-resources | grep HelmRelease
+   ```
+
+11. Verify and test app:
 
    Check helm release, deployments, and pods
    ```bash
@@ -157,14 +208,17 @@ Add these secrets to the repository:
    ```
    Verify Load Ballancer service external ip
    ```bash
-   kubectl get svc online-store -o jsonpath='{.status.loadBalancer.ingress[0].hostname}
-
+   kubectl get svc online-store
+   
    output:
-   NAME           TYPE           EXTERNAL-IP
-   online-store   LoadBalancer   a1b2c3d4....
+   NAME           TYPE           CLUSTER-IP      EXTERNAL-IP                                                              PORT(S)        AGE
+   online-store   LoadBalancer   172.20.137.83   a72ab2ca2c7d840cc821324981d3265b-849734734.us-east-1.elb.amazonaws.com   80:30370/TCP   103s
 
-   Access app endpoint:
-   http://a1b2c3d4....
+   Access app endpoint to view landing page(See images/app-landing-page.png):
+   http://a72ab2ca2c7d840cc821324981d3265b-849734734.us-east-1.elb.amazonaws.com
+
+   Access API docs
+   http://a72ab2ca2c7d840cc821324981d3265b-849734734.us-east-1.elb.amazonaws.com/docs
    ```
 
 

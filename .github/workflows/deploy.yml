@@ -139,9 +139,9 @@ jobs:
         run: |
           flux bootstrap github \
             --owner=${{ secrets.GIT_USER }} \
-            --repository=devops-fastapi-k8-aws-helm \
+            --repository=production-devops-platform \
             --branch=main \
-            --path=deploy/clusters/flux-system \
+            --path=clusters/production \
             --personal
 
       - name: Flux Check

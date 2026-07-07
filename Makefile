@@ -39,7 +39,7 @@ kind-load:
 	kind load docker-image online-store:local --name kind
 
 kind-deploy:
-	helm upgrade --install online-store deploy/charts/online-store --set image.repository=online-store --set image.tag=local
+	helm upgrade --install online-store charts/online-store --set image.repository=online-store --set image.tag=local
 
 kind-clean:
 	helm uninstall online-store || true

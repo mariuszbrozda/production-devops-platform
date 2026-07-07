@@ -1,4 +1,4 @@
-# Online Store FastAPI + Kubernetes
+# Production DevOps Platform
 
 Python FastAPI online store application deployed with Kubernetes and Helm using Infrastructure as Code and CI/CD automation.
 This project reflects a typical DevOps deployment workflow where source code is tested and built into a Docker image, stored in Amazon ECR, and deployed to an Amazon EKS cluster using flux and helmrelease(watching ECR repo for new available app image), while AWS infrastructure is provisioned with Terraform. The repository is designed to demonstrate an end-to-end Infrastructure-as-Code and GitOps-style workflow.
@@ -11,10 +11,11 @@ This project reflects a typical DevOps deployment workflow where source code is 
 - AWS EKS provisioned via Terraform
 - Helm chart for Kubernetes deployment
 - GitHub Actions for build and publish pipelines
+- Flux CD for GitOps operations
 
 # High Level Architecture Diagram
 
-![Diagram](images/diagram.png)
+![Diagram](demo-images/diagram.png)
 
 ## Local development
 
@@ -175,7 +176,7 @@ Add these secrets to the repository:
       --owner=<owner-name> \
       --repository=<repository-name> \
       --branch=main \
-      --path=deploy/flux/flux-system \
+      --path=clusters/production \
       --personal
    ```
    ```bash

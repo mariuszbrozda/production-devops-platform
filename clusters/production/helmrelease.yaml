@@ -7,7 +7,7 @@ spec:
   interval: 5m
   chart:
     spec:
-      chart: ./deploy/charts/online-store
+      chart: charts/online-store
       sourceRef:
         kind: GitRepository
         name: online-store-repo

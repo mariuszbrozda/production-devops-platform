@@ -222,4 +222,31 @@ Add these secrets to the repository:
    http://a72ab2ca2c7d840cc821324981d3265b-849734734.us-east-1.elb.amazonaws.com/docs
    ```
 
+## Access Grafana and Prometheus
+
+Once the monitoring stack is deployed in the `monitoring` namespace, you can access the UIs locally with port-forwarding:
+
+```bash
+kubectl port-forward -n monitoring svc/kube-prometheus-stack-prometheus 9090:9090
+kubectl port-forward -n monitoring svc/kube-prometheus-stack-grafana 3000:80
+```
+
+Then open:
+
+- Prometheus UI: http://127.0.0.1:9090 and http://127.0.0.1:9090/metrics
+- Grafana UI: http://127.0.0.1:3000
+
+To view the application metrics directly, the FastAPI service exposes the Prometheus endpoint at:
+
+- http://127.0.0.1:8000/metrics
+
+If Grafana prompts for credentials, use:
+
+```bash
+kubectl get secret -n monitoring kube-prometheus-stack-grafana -o jsonpath="{.data.admin-user}" | base64 --decode
+kubectl get secret -n monitoring kube-prometheus-stack-grafana -o jsonpath="{.data.admin-password}" | base64 --decode
+```
+
+The Prometheus data source is already configured through the monitoring stack, and the application metrics are scraped via the ServiceMonitor defined in the cluster manifests.
+
 

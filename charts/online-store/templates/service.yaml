@@ -11,5 +11,9 @@ spec:
       targetPort: 8000
       protocol: TCP
       name: http
+    - port: 9090
+      targetPort: 9090
+      protocol: TCP
+      name: metrics
   selector:
     app: {{ include "online-store.name" . }}

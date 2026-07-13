@@ -107,7 +107,9 @@ jobs:
           kubectl get nodes
 
       - name: Create ECR repo secret in cluster
-        run: kubectl create secret generic ecr-config -n default --from-literal=repository=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY_NAME }}
+        run: |
+          kubectl create namespace production
+          kubectl create secret generic ecr-config -n production --from-literal=repository=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY_NAME }}
 
       # Build and push Docker image to ECR
       - name: Login to Amazon ECR

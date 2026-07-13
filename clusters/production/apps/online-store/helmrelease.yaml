@@ -2,12 +2,12 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: online-store
-  namespace: default
+  namespace: production
 spec:
   interval: 5m
   chart:
     spec:
-      chart: charts/online-store
+      chart: ./charts/online-store
       sourceRef:
         kind: GitRepository
         name: online-store-repo

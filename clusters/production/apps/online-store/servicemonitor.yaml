@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: online-store-servicemonmitor
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  namespaceSelector:
+    any: true
+  selector:
+    matchLabels:
+      app: online-store
+  endpoints:
+    - port: metrics           # Must match Service port name
+      interval: 30s           # Scrape interval
+      scrapeTimeout: 10s      # Timeout for scrape
+      path: /metrics          # Metrics endpoint path

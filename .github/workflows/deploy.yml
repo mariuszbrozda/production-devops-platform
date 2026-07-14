@@ -154,11 +154,9 @@ jobs:
           echo "Waiting for Helm release to be deployed"
           sleep 180
           echo "Verifying helm release, deployments, and pods"
-          helm list -A
-          kubectl get kustomization -A
-          kubectl get helmrelease -A
-          kubectl get deployments -A
-          kubectl get pod -A
+          kubectl get kustomization -n flux-system
+          kubectl get all -n production
+          kubectl get all -n monitoring
 
       - name: Test Application via Load Balancer
         run: |

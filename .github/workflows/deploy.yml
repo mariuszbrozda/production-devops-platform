@@ -152,16 +152,18 @@ jobs:
       - name: Verify Helm release, deployments, and pods
         run: |
           echo "Waiting for Helm release to be deployed"
-          sleep 120
+          sleep 180
           echo "Verifying helm release, deployments, and pods"
-          helm list
+          helm list -A
+          kubectl get kustomization -A
+          kubectl get helmrelease -A
           kubectl get deployments
           kubectl get pod
 
       - name: Test Application via Load Balancer
         run: |
           echo "Retrieving Load Balancer External Ip(host)"
-          EXTERNAL_IP=$(kubectl get svc online-store -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+          EXTERNAL_IP=$(kubectl get svc online-store -n production -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
           echo "Accessing External Ip(host) by curl"
           curl $(echo "http://$EXTERNAL_IP")
           sleep 30

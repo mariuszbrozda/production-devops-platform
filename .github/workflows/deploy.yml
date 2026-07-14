@@ -152,7 +152,7 @@ jobs:
       - name: Verify Helm release, deployments, and pods
         run: |
           echo "Waiting for Helm release to be deployed"
-          sleep 180
+          sleep 300
           echo "Verifying helm release, deployments, and pods"
           kubectl get kustomization -n flux-system
           kubectl get all -n production

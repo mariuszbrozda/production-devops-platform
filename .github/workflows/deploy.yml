@@ -157,8 +157,8 @@ jobs:
           helm list -A
           kubectl get kustomization -A
           kubectl get helmrelease -A
-          kubectl get deployments
-          kubectl get pod
+          kubectl get deployments -A
+          kubectl get pod -A
 
       - name: Test Application via Load Balancer
         run: |
